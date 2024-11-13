@@ -86,7 +86,7 @@ class Telnet(Device, metaclass=DeviceMeta):
     
     def read_dynamic_attr(self, attr):
         name = attr.get_name()
-        self.client.write(self.read_cmd(name))
+        self.writeTelnet(self.read_cmd(name))
         value = self.stringValueToTypeValue(name, self.readTillPrompt())
         self.debug_stream("read value " + str(name) + ": " + str(value))
         attr.set_value(value)
@@ -116,9 +116,10 @@ class Telnet(Device, metaclass=DeviceMeta):
     def publish(self, name):
         value = self.dynamicAttributes[name]["value"]
         self.info_stream("Publish variable " + str(name) + ": " + str(value))
-        self.client.write(self.write_cmd(name, value))
+        self.writeTelnet(self.write_cmd(name, value))
         print(self.readTillPrompt())
-        
+
+
     def read_cmd(self, name):
         return self.read_command.replace("_VARNAME_", name)
         
@@ -128,20 +129,30 @@ class Telnet(Device, metaclass=DeviceMeta):
     def reconnect(self):
         self.client = telnetlib.Telnet(self.host, self.port, timeout=10)
         if(self.username != "" and self.username_prompt != ""):
-            self.client.read_until(self.username_prompt)
-            self.client.write(self.username.encode('ascii') + b"\n")
+            print("waiting for username prompt...")
+            print(self.readTillPrompt(self.username_prompt))
+            print("write to username prompt")
+            self.writeTelnet(self.username)
         if(self.password != "" and self.password_prompt != ""):
-            self.client.read_until(self.password_prompt)
-            self.client.write(self.password.encode('ascii') + b"\n")
+            print("waiting for password prompt...")
+            self.readTillPrompt(self.password_prompt)
+            print("write to password prompt")
+            self.writeTelnet(self.password)
+        print("waiting for prompt...")
         print(self.readTillPrompt())
         if(self.init_command != ""):
-            self.client.write(self.init_command.encode('ascii') + b"\n")
+            self.writeTelnet(self.init_command)
             print(self.readTillPrompt())
 
-    def readTillPrompt(self):
-        out = self.client.read_until(self.prompt).decode('ascii')
-        out = out.removesuffix(self.prompt)
+    def readTillPrompt(self, prompt = ""):
+        if(prompt == ""):
+            prompt = self.prompt
+        out = self.client.read_until(prompt.encode('ascii')).decode('ascii')
+        out = out.removesuffix(prompt)
         return out.strip()
+
+    def writeTelnet(self, payload):
+        self.client.write(payload.encode('ascii') + b"\n")
         
     def init_device(self):
         self.set_state(DevState.INIT)
