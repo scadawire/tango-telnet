@@ -27,7 +27,7 @@ class Telnet(Device, metaclass=DeviceMeta):
     read_command = device_property(dtype=str, default_value="GET _VARNAME_\n")
     write_command = device_property(dtype=str, default_value="SET _VARNAME_ TO _VALUE_\n")
     init_dynamic_attributes = device_property(dtype=str, default_value="")
-    client = null
+    client = 0
     dynamicAttributes = {}
     
     @attribute
