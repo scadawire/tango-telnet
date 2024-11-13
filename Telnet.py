@@ -27,6 +27,7 @@ class Telnet(Device, metaclass=DeviceMeta):
     read_command = device_property(dtype=str, default_value="GET _VARNAME_\n")
     write_command = device_property(dtype=str, default_value="SET _VARNAME_ TO _VALUE_\n")
     init_dynamic_attributes = device_property(dtype=str, default_value="")
+    prompt = device_property(dtype=str, default_value="> ")
     client = 0
     dynamicAttributes = {}
     
@@ -86,7 +87,7 @@ class Telnet(Device, metaclass=DeviceMeta):
     def read_dynamic_attr(self, attr):
         name = attr.get_name()
         self.client.write(self.read_cmd(name))
-        value = self.stringValueToTypeValue(name, self.self.client.read_all().decode('ascii'))
+        value = self.stringValueToTypeValue(name, self.readTillPrompt())
         self.debug_stream("read value " + str(name) + ": " + str(value))
         attr.set_value(value)
  
@@ -116,7 +117,7 @@ class Telnet(Device, metaclass=DeviceMeta):
         value = self.dynamicAttributes[name]["value"]
         self.info_stream("Publish variable " + str(name) + ": " + str(value))
         self.client.write(self.write_cmd(name, value))
-        self.client.read_all().decode('ascii') # empty input buffer
+        print(self.readTillPrompt())
         
     def read_cmd(self, name):
         return self.read_command.replace("_VARNAME_", name)
@@ -132,10 +133,15 @@ class Telnet(Device, metaclass=DeviceMeta):
         if(self.password != "" and self.password_prompt != ""):
             self.client.read_until(self.password_prompt)
             self.client.write(self.password.encode('ascii') + b"\n")
-        # print(self.client.read_all().decode('ascii'))
+        print(self.readTillPrompt())
         if(self.init_command != ""):
             self.client.write(self.init_command.encode('ascii') + b"\n")
-            print(self.client.read_all().decode('ascii'))
+            print(self.readTillPrompt())
+
+    def readTillPrompt(self):
+        out = self.client.read_until(self.prompt).decode('ascii')
+        out = out.removesuffix(self.prompt)
+        return out.strip()
         
     def init_device(self):
         self.set_state(DevState.INIT)
