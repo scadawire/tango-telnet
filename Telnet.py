@@ -35,7 +35,7 @@ class Telnet(Device, metaclass=DeviceMeta):
         return time.time()
 
     @command(dtype_in=str)
-    def add_dynamic_attribute(self, register, topic, 
+    def add_dynamic_attribute(self, topic, 
             variable_type_name="DevString", min_value="", max_value="",
             unit="", write_type_name=""):
         if topic == "": return
@@ -50,7 +50,6 @@ class Telnet(Device, metaclass=DeviceMeta):
             prop.set_unit(unit)
         attr = Attr(topic, variableType, writeType)
         attr.set_default_properties(prop)
-        register_parts = self.get_register_parts(register)
         self.add_attribute(attr, r_meth=self.read_dynamic_attr, w_meth=self.write_dynamic_attr)
         self.dynamicAttributes[topic] = {"variableType": variableType, "value": 0 }
         print("added dynamic attribute " + topic)
@@ -146,7 +145,7 @@ class Telnet(Device, metaclass=DeviceMeta):
             try:
                 attributes = json.loads(self.init_dynamic_attributes)
                 for attributeData in attributes:
-                    self.add_dynamic_attribute(attributeData["register"], attributeData["name"], 
+                    self.add_dynamic_attribute(attributeData["name"], 
                         attributeData.get("data_type", ""), attributeData.get("min_value", ""), attributeData.get("max_value", ""),
                         attributeData.get("unit", ""), attributeData.get("write_type", ""))
             except JSONDecodeError as e:
