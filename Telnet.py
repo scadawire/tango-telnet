@@ -132,7 +132,7 @@ class Telnet(Device, metaclass=DeviceMeta):
         if(self.password != "" and self.password_prompt != ""):
             self.client.read_until(self.password_prompt)
             self.client.write(self.password.encode('ascii') + b"\n")
-        print(self.client.read_all().decode('ascii'))
+        # print(self.client.read_all().decode('ascii'))
         if(self.init_command != ""):
             self.client.write(self.init_command.encode('ascii') + b"\n")
             print(self.client.read_all().decode('ascii'))
