@@ -124,7 +124,7 @@ class Telnet(Device, metaclass=DeviceMeta):
         return self.read_command.replace("_VARNAME_", name)
         
     def write_cmd(self, name, value):
-        return self.read_command.replace("_VARNAME_", name).replace("_VALUE_", str(value))
+        return self.write_command.replace("_VARNAME_", name).replace("_VALUE_", str(value))
         
     def reconnect(self):
         self.client = telnetlib.Telnet(self.host, self.port, timeout=10)
